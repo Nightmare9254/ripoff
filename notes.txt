@@ -1,0 +1,33 @@
+The APP - Dancing with elements of tresure hunt
+
+In the app there will be a possibility to scan QR code with dance movents
+
+What it works:  
+
+A user is registering in the app and creates the user account.
+
+When the users  comes to the place and discovers the QR code sticker to scan after scan the app is opening then he gets video with  excercise 
+
+and then the users  goes  to a new tresure with new movemnet.  
+
+At the end of the journey when all of the points will be completed there will be some confetti and whole dance has been completed 
+
+There will be 8-10 tresusers that user can unlock which all together will create the whole dance 
+
+
+Then there will be an event that all of the people who completed will be ivited, sth like karaoke? but with movemnts - The big , someone will be  animating - showing the movemnts from the stage  and all gathered people will be dancing. 
+
+There will 8-10 qr codes in Llillestrom people can register and tresure hunts 
+
+
+Mid jun MVP for basic stuff.
+Also in June for the beginning there will be only one track.
+By location service app should check where’s the user 
+
+
+
+There should be also possibility to present result  at the conference to show the amount of users that achieved the whole path. 
+
+
+Dedline 1st June 
+
