@@ -17,6 +17,7 @@ function App() {
   const [state, setState] = useState<AppState>({ status: "idle" });
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const [isHovered, setIsHovered] = useState(false);
+  const [rawError, setRawError] = useState("");
   const scannerContainerId = "qr-reader";
   const [deferredPrompt, setDeferredPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
@@ -57,7 +58,7 @@ function App() {
       navigator.geolocation.getCurrentPosition(
         () => resolve(),
         (error) => reject(error),
-        { enableHighAccuracy: true, timeout: 10000 },
+        { enableHighAccuracy: true, timeout: 30000, maximumAge: 60000 },
       );
     });
   };
@@ -74,27 +75,21 @@ function App() {
       setState({ status: "loading", message: "Starting camera..." });
       startScanner();
     } catch (error) {
+      setRawError(JSON.stringify(error) as any);
       const geolocationError = error as GeolocationPositionError;
       let errorMessage = "Failed to get location";
 
-      if (error instanceof Error && error.message === "denied") {
-        errorMessage =
-          "Location permission was denied. Please enable location access in your browser settings, then return and try again.";
-      } else if (
+      if (
         geolocationError?.code === GeolocationPositionError.PERMISSION_DENIED
       ) {
-        errorMessage =
-          "Location permission denied. Please enable location access and try again.";
+        errorMessage = "Location permission denied. Please enable in settings.";
       } else if (
         geolocationError?.code === GeolocationPositionError.POSITION_UNAVAILABLE
       ) {
-        errorMessage = "Location information unavailable. Please try again.";
+        errorMessage = "Location unavailable. Please try again.";
       } else if (geolocationError?.code === GeolocationPositionError.TIMEOUT) {
-        errorMessage = "Location request timed out. Please try again.";
-      } else if (
-        error instanceof Error &&
-        error.message.includes("not supported")
-      ) {
+        errorMessage = "Location timed out. Please try again.";
+      } else if (error instanceof Error) {
         errorMessage = error.message;
       }
 
@@ -181,7 +176,7 @@ function App() {
       }}
     >
       <h1 style={{ marginBottom: "40px", color: "#333", textAlign: "center" }}>
-        QR Scanner
+        QR Scanner V2
       </h1>
 
       {state.status === "idle" && (
@@ -351,6 +346,7 @@ function App() {
           >
             Scan Another
           </button>
+          {rawError && <p>{rawError}</p>}
         </div>
       )}
 
