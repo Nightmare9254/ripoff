@@ -8,11 +8,34 @@ type AppState =
   | { status: "success"; content: string; lat: number; lng: number }
   | { status: "error"; message: string };
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+}
+
 function App() {
   const [state, setState] = useState<AppState>({ status: "idle" });
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const [isHovered, setIsHovered] = useState(false);
   const scannerContainerId = "qr-reader";
+  const [deferredPrompt, setDeferredPrompt] =
+    useState<BeforeInstallPromptEvent | null>(null);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  const handleInstall = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    setDeferredPrompt(null);
+  };
 
   const stopScanner = useCallback(async () => {
     if (scannerRef.current) {
@@ -109,7 +132,12 @@ function App() {
               });
             },
             () => {
-              setState({ status: "success", content: decodedText, lat: 0, lng: 0 });
+              setState({
+                status: "success",
+                content: decodedText,
+                lat: 0,
+                lng: 0,
+              });
             },
           );
         },
@@ -148,7 +176,6 @@ function App() {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        padding: "20px",
         fontFamily: "system-ui, -apple-system, sans-serif",
         backgroundColor: "#f5f5f5",
       }}
@@ -158,24 +185,51 @@ function App() {
       </h1>
 
       {state.status === "idle" && (
-        <button
-          type="button"
-          onClick={handleStartScan}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
+        <div
           style={{
-            padding: "20px 40px",
-            fontSize: "18px",
-            backgroundColor: isHovered ? "#0056b3" : "#007bff",
-            color: "white",
-            border: "none",
-            borderRadius: "8px",
-            cursor: "pointer",
-            transition: "background-color 0.2s",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
           }}
         >
-          Scan QR Code
-        </button>
+          <button
+            type="button"
+            onClick={handleStartScan}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            style={{
+              padding: "20px 40px",
+              fontSize: "18px",
+              backgroundColor: isHovered ? "#0056b3" : "#007bff",
+              color: "white",
+              border: "none",
+              borderRadius: "8px",
+              cursor: "pointer",
+              transition: "background-color 0.2s",
+            }}
+          >
+            Scan QR Code
+          </button>
+
+          {deferredPrompt && (
+            <button
+              type="button"
+              onClick={handleInstall}
+              style={{
+                marginTop: "20px",
+                padding: "12px 24px",
+                fontSize: "14px",
+                backgroundColor: "#28a745",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                cursor: "pointer",
+              }}
+            >
+              Install App
+            </button>
+          )}
+        </div>
       )}
 
       {state.status === "loading" && (
